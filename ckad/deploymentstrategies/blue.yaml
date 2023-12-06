@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: blue
+  name: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blue
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: blue
+    spec:
+      volumes:
+      - name: test
+        configMap:
+          name: blue
+      containers:
+      - image: nginx
+        name: nginx
+        volumeMounts:
+          - name: test
+            mountPath: /usr/share/nginx/html/index.html
+            subPath: blue.html  
+        resources: {}
+status: {}

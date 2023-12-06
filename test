@@ -1,0 +1,118 @@
+pipeline{
+	agent{
+		label "${env.AGENT_LABEL}"
+	}
+	tools {
+	    maven "${env.TOOL_MAVEN}"
+	    jdk   "${env.TOOL_JDK}"
+	}
+	stages {
+		stage('Docker Image Creation Script') {
+			steps{
+				script{
+					def sourceCredentialId = "86b18703-1712-4e54-aaa2-b88277a82e75";
+					def repoName="${env.REPO_NAME}";
+					def sourceBranch="${env.BRANCH_SOURCE}";
+					def imageName="${env.IMAGE_NAME}";
+					def baseRepo="${env.REPO_BASE_NAME}";
+					def repoUrl = 'ssh://git@bitbucket.verifone.com:7999/' +baseRepo +'/'+repoName + '.git';
+					def cloned=false;
+					def registryUrl="${env.DOCKER_REGISTRY}";
+					def registryCredentialId="";
+					def dockerFileDir="docker";
+					def devopsBranch="develop";
+					def imageTagVersion = "";
+					def cdJobPath="${env.CD_JOB}";
+					def appRestart="${env.APP_RESTART}";
+					def finalImageName="";
+					if(repoName == null || repoName == "" || imageName == null || imageName == ""){
+        	     	 echo "############### REPO_NAME and IMAGE_NAME    Cannot be Empty ###############";  
+        	     	 currentBuild.result = "FAILED";
+        	         return;                                  
+					}else{
+						stage('pull-repository'){
+							 try{
+								echo "############### [START] ENVIRONMENT INFO  ###############";  
+								sh( script:"mvn -version");
+								sh( script:"java -version");
+								echo "############### [END] ENVIRONMENT INFO  ###############";
+								 dir(repoName){
+									deleteDir();
+									checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: repoUrl, credentialsId: sourceCredentialId]], branches: [[name: sourceBranch]]],poll: false
+									cloned = true;
+									echo "############ Repo : ${repoName} cloned ############";
+									withMaven (
+										mavenLocalRepo: '$WORKSPACE/.repository'
+									
+									){
+										sh( script:"mvn clean install -DskipTests -U");
+									}
+									echo "############ [MAVEN BUILD] SUCCESS ############";
+								}
+							 }catch(any){
+								 throw any;
+							 }
+						 }
+						 stage('building-image'){
+							 try{
+								 dir(repoName){
+									echo "############### [START - DOCKER BUILD]  ###############";  
+									def rootPOM = readMavenPom file:'pom.xml';
+									def currentVersion = rootPOM.getVersion();
+									finalImageName = imageName+":"+currentVersion;
+									def buildNumber = currentBuild.number;
+									imageTagVersion= currentVersion+"."+buildNumber;
+									if(currentVersion.endsWith("-SNAPSHOT")){
+									   finalImageName=imageName+"/snapshots:"+currentVersion+"."+buildNumber;
+									}else{
+									   finalImageName=imageName+"/releases:"+currentVersion+"."+buildNumber;
+									}
+									def dockerFileLocation='-f Dockerfile .'
+									def dockerImage = docker.build(finalImageName,dockerFileLocation);
+									echo "############ [DOCKER BUILD] ${finalImageName} ############";
+									docker.withRegistry(registryUrl){
+										dockerImage.push();
+										echo "############ [DOCKER PUSH] ${finalImageName} ############";
+									}
+									echo "############### [END - DOCKER BUILD]  ###############";  
+								}
+							 }catch(any){
+								 throw any;
+							 }
+						 }
+						stage('Scan image with Twistlock'){
+						   prismaCloudScanImage ca: '',cert: '',dockerAddress: 'unix:///var/run/docker.sock',ignoreImageBuildTime: true,image: "${finalImageName}",key: '',logLevel: 'info',podmanPath: '',project: '',resultsFile: 'prisma-cloud-scan-results.json'
+						}
+						stage('Publish Twistlock Scan report'){
+						   prismaCloudPublish resultsFilePattern: 'prisma-cloud-scan-results.json'
+						}
+						
+						if(cdJobPath != ""){
+					
+							stage('Trigger-CD-Job'){
+								 try{
+									def cdParameters = """
+														image_tag=$imageTagVersion\npod_restart=$appRestart
+													   """;
+									def handle =triggerRemoteJob(abortTriggeredJob: true, auth: CredentialsAuth(credentials: 'cf36166a-3fe3-46e4-b707-2718ece4750e'),job:cdJobPath,overrideTrustAllCertificates:true,parameters:cdParameters,remoteJenkinsName:'Global-CI Jenkins',remoteJenkinsUrl:'http://100.101.3.200:8080',trustAllCertificates:true);
+									def status = handle.getBuildStatus();
+									def buildUrl = handle.getBuildUrl();
+									echo buildUrl.toString() + " finished with " + status.toString();
+								 }catch(any){
+									 throw any;
+								 }
+							 }
+						}
+					
+					}
+					
+					
+				
+				}
+			}
+		
+		}
+	
+	}
+
+}

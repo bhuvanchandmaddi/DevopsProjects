@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: test
+    image: redis
+    env:
+    - name: test
+      value: "test-value"
+    envFrom:
+    - configMapRef:
+        name: envappconfig
+    volumeMounts:
+    - name: foo
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: foo
+    configMap:
+      name: test
+      items:
+      - key: "key"
+        path: "test.properties"

@@ -1,0 +1,22 @@
+
+<html>
+<head>
+  <title>Sample HTML File</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Hello, World!</h1>
+  
+  <p>This is a sample HTML file.</p>
+  
+  <ul>
+    <li>List item 1</li>
+    <li>List item 2</li>
+    <li>List item 3</li>
+  </ul>
+  
+
+  
+
+</body>
+</html>

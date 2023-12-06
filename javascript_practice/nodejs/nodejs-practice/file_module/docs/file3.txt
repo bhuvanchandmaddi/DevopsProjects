@@ -1,0 +1,9 @@
+readStream.on('data', chunk => {
+  // console.log('---- NEW CHUNK ----');
+  // console.log(chunk);
+  writeStream.write('\nNEW CHUNK:\n');
+  writeStream.write(chunk);
+});
+
+// piping
+// readStream.pipe(writeStream);

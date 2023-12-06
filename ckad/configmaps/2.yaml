@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: test
+    image: redis
+    volumeMounts:
+    - name: foo
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: foo
+    configMap:
+      name: test
+      items:
+      - key: "key"
+        path: "test.properties"

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    deployment.kubernetes.io/revision: "2"
+  creationTimestamp: "2023-10-02T05:45:39Z"
+  generation: 2
+  labels:
+    app: sample
+  name: sample
+  namespace: default
+  resourceVersion: "67469"
+  uid: 13337a37-22b0-4ad2-afc3-e29ac79daddb
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: sample
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: sample
+    spec:
+      containers:
+      - command:
+        - sleep
+        - "10000"
+        env:
+        - name: PLAYER_INITIAL_LIVES
+          valueFrom:
+            configMapKeyRef:
+              key: player_initial_lives
+              name: game-demo
+        - name: UI_PROPERTIES_FILE_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: ui_properties_file_name
+              name: game-demo
+        image: busybox
+        imagePullPolicy: Always
+        name: busybox
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2023-10-02T05:58:56Z"
+    lastUpdateTime: "2023-10-02T05:58:56Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2023-10-02T05:58:52Z"
+    lastUpdateTime: "2023-10-02T05:58:56Z"
+    message: ReplicaSet "sample-598d84b89" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-test-and-dns
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      test: value  # Pods with this label will be the target for the policy
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:  # Allows ingress from pods with a specific label
+        - podSelector:
+            matchLabels:
+              app: nginx  # Assuming 'test-value' is a typo and you meant 'test: value'
+    - ports:  # Allows DNS traffic
+        - protocol: UDP
+          port: 53

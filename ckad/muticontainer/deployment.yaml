@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deploy
+  labels:
+    test: app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+       app: dummy
+  template:
+    metadata:
+      labels:
+        app: y
+    spec:
+      initContainers:
+      - name: 
+        image: alpine:latest
+        command: ['sh', '-c', 'touch /opt/log.txt && tail -F /opt/log.txt']
+        volumeMounts:
+          - name: 
+            mountPath: '/opt'  
+      containers:
+      - name: main
+        image: alpine:latest
+        command: ['sh', '-c', 'while true; do echo "logging" >> /opt/log.txt; sleep 1; done']
+        volumeMounts:  
+          - name: dummy
+            mountPath: '/opt'
+      volumes:
+      - name: dummy
+        emptyDir: {}        

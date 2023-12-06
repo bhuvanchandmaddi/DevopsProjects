@@ -1,0 +1,27 @@
+This is a dummy text file to practice vi commands.
+vim stands for Visual Interface.
+The vi editor is one of the most common text editors on Unix.
+
+
+To start vi, you can simply type vim followed by a file name.
+If the file does not exist, vim will create one for you.
+
+Modes in vi:
+- Normal mode: where you can navigate and manipulate text.
+- Insert mode: where you can insert text.
+- Command-line mode: where you can type commands.
+
+Here are some basic commands:
+- i: Enter insert mode.
+- :w: Save the file.
+- :q: Quit vi.
+- :q!: Quit without saving.
+- :wq: Save and quit.
+
+Vi also supports syntax highlighting for various programming languages.
+
+Vi also supports syntax highlighting for various programming languages.
+Remember to practice regularly to become proficient with vi!
+Vi also supports syntax highlighting for various programming languages.
+Vi also supports syntax highlighting for various programming languages.
+

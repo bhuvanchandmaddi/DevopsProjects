@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+  jenkins-joc:
+    container_name: jenkins-joc
+    image: cloudbees/cloudbees-core-oc:latest  # Replace with the specific version if needed
+    ports:
+      - "8888:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-joc-data:/var/jenkins_home
+    environment:
+      - JAVA_OPTS=-Djenkins.model.Jenkins.slaveAgentPort=50001 
+    restart: unless-stopped
+    networks:
+    - jenkinsnet
+
+  jenkins-master:
+    container_name: jenkins-master
+    image: cloudbees/cloudbees-core-cm:latest  # Replace with the specific version if needed
+    ports:
+      - "8085:8080"
+    volumes:
+      - jenkins-master-data:/var/jenkins_home
+    environment:
+      - JAVA_OPTS=-Djenkins.model.Jenkins.slaveAgentPort=50000 
+    restart: unless-stopped
+    networks:
+    - jenkinsnet
+
+volumes:
+  jenkins-joc-data:
+  jenkins-master-data:
+networks:
+  jenkinsnet:
